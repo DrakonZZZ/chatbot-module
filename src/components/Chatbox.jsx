@@ -3,7 +3,7 @@ import MessageList from './MessageList';
 import MessageForm from './MessageForm';
 import { messages } from '../messages';
 import { styled } from 'styled-components';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 const StyledContainer = styled.div`
   position: fixed;
@@ -34,19 +34,52 @@ const MessageContent = styled.div`
   padding: 8px;
 `;
 
-const Chatbox = () => {
+const Chatbox = ({}) => {
   const [message, setMessage] = useState(messages);
   const [isWindowOpen, setIsWindowOpen] = useState(false);
+  const lastMessageRef = useRef(null);
+
+  const scrollToLastMessage = () => {
+    lastMessageRef.current?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'end',
+    });
+  };
 
   const unreadText = message.filter((text) => text.status === 'unread');
+  scrollToLastMessage();
+
+  useEffect(() => {
+    scrollToLastMessage();
+  }, [message]);
+
+  useEffect(() => {
+    if (isWindowOpen) {
+      setMessage(message.map((m) => ({ ...m, status: 'read' })));
+    }
+  }, [isWindowOpen]);
+
+  const insertNewMessage = (text) => {
+    setMessage([
+      ...message,
+      {
+        id: message.length,
+        status: 'read',
+        sender: 'user',
+        text,
+        time: new Date(),
+      },
+    ]);
+  };
   return (
     <StyledContainer>
       {isWindowOpen && (
         <FloatingWindow>
           <MessageContent>
             <MessageList message={message} />
+            <div ref={lastMessageRef}></div>
           </MessageContent>
-          <MessageForm />
+          <MessageForm onSumbit={insertNewMessage} />
         </FloatingWindow>
       )}
       <FloatingBlip

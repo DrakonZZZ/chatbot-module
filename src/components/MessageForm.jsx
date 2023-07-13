@@ -1,8 +1,9 @@
 import { useState } from 'react';
+import { useColorContext } from '../color_context';
 import { styled } from 'styled-components';
 
 const StyledForm = styled.div`
-  padding-top: 5px;
+  padding: 3px;
   border-radius: 8px;
   display: flex;
   background-color: white;
@@ -20,19 +21,22 @@ const StyledForm = styled.div`
   }
   .btn {
     border: none;
-    background-color: #41555c;
     color: white;
     border-top-right-radius: 8px;
     border-bottom-right-radius: 8px;
     font-size: 1.2rem;
-    padding: 6px;
+    padding: 6px 15px;
   }
 `;
 
 const MessageForm = ({ onSumbit = () => {} }) => {
   const [newMessage, setNewMessage] = useState('');
+  const { theme } = useColorContext();
 
   const submitForm = () => {
+    if (newMessage === '') {
+      return;
+    }
     onSumbit(newMessage);
     setNewMessage('');
   };
@@ -43,8 +47,18 @@ const MessageForm = ({ onSumbit = () => {} }) => {
         className="message-input"
         value={newMessage}
         onChange={(e) => setNewMessage(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            submitForm();
+          }
+        }}
       />
-      <button type="button" onClick={submitForm} className="btn">
+      <button
+        type="button"
+        onClick={submitForm}
+        className="btn"
+        style={{ background: theme.primaryColor }}
+      >
         Send
       </button>
     </StyledForm>

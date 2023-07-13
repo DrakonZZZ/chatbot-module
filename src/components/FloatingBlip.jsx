@@ -1,5 +1,6 @@
 import { AiOutlineMessage } from 'react-icons/ai';
 import { styled } from 'styled-components';
+import { useColorContext } from '../color_context';
 
 const StyledButton = styled.button`
   text-align: center;
@@ -10,7 +11,7 @@ const StyledButton = styled.button`
   width: 50px;
   border-radius: 50%;
   background-color: white;
-  color: black;
+  color: ${(props) => props.$primaryColor};
   font-size: 1rem;
   cursor: pointer;
   border: none;
@@ -35,8 +36,9 @@ const StyledNotificaion = styled.span`
 `;
 
 const FloatingBlip = ({ unreadTextCount = 0, onClick = () => {} }) => {
+  const { theme } = useColorContext();
   return (
-    <StyledButton onClick={onClick}>
+    <StyledButton onClick={onClick} $primaryColor={theme.primaryColor}>
       <AiOutlineMessage size={40} />
       {unreadTextCount > 0 && (
         <StyledNotificaion>{unreadTextCount}</StyledNotificaion>

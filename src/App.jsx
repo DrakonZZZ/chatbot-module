@@ -1,9 +1,12 @@
 import Chatbox from './components/Chatbox';
+import { ColorProvider } from './color_context';
 
 function App() {
   return (
     <>
-      <Chatbox />
+      <ColorProvider>
+        <Chatbox />
+      </ColorProvider>
     </>
   );
 }

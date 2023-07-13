@@ -1,6 +1,8 @@
 import { styled } from 'styled-components';
+import { useColorContext } from '../color_context';
 
 const StyledContainer = styled.div`
+  flex: 2;
   text-align: left;
   display: flex;
   flex-direction: column;
@@ -9,7 +11,7 @@ const StyledContainer = styled.div`
 const MessageBaseWrap = styled.div`
   flex-direction: column;
   display: flex;
-  padding: 0.8rem;
+  padding: 0.4rem;
 `;
 
 const UserMassageWrap = styled(MessageBaseWrap)`
@@ -27,30 +29,40 @@ const MessageBase = styled.span`
 `;
 
 const UserMessage = styled(MessageBase)`
-  background-color: #41555c;
-  color: white;
+  background-color: ${(props) => props.$primary};
+  color: ${(props) => props.$textPrimary};
 `;
 
 const NonUserMessage = styled(MessageBase)`
-  background-color: #699db0;
-  color: white;
+  background-color: ${(props) => props.$secondary};
+  color: ${(props) => props.$textSecondary};
 `;
 
 const MessageList = ({ message }) => {
-  console.log(message);
+  const { theme } = useColorContext();
   return (
     <StyledContainer>
       {message.map((m) => {
         if (m.sender === 'user') {
           return (
             <UserMassageWrap key={m.id}>
-              <UserMessage>{m.text}</UserMessage>
+              <UserMessage
+                $primary={theme.primaryColor}
+                $textPrimary={theme.textPrimaryColor}
+              >
+                {m.text}
+              </UserMessage>
             </UserMassageWrap>
           );
         }
         return (
           <NonUserMassageWrap key={m.id}>
-            <NonUserMessage>{m.text}</NonUserMessage>
+            <NonUserMessage
+              $secondary={theme.secondaryColor}
+              $textSecondary={theme.textSecondaryColor}
+            >
+              {m.text}
+            </NonUserMessage>
           </NonUserMassageWrap>
         );
       })}
