@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useColorContext } from '../color_context';
+import { AiOutlineSend } from 'react-icons/ai';
 import { styled } from 'styled-components';
 
 const StyledForm = styled.div`
@@ -24,6 +25,8 @@ const StyledForm = styled.div`
     color: white;
     border-top-right-radius: 8px;
     border-bottom-right-radius: 8px;
+    display: flex;
+    align-items: center;
     font-size: 1.2rem;
     padding: 6px 15px;
   }
@@ -59,7 +62,7 @@ const MessageForm = ({ onSumbit = () => {} }) => {
         className="btn"
         style={{ background: theme.primaryColor }}
       >
-        Send
+        <AiOutlineSend />
       </button>
     </StyledForm>
   );

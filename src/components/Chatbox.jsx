@@ -1,9 +1,9 @@
 import FloatingBlip from './FloatingBlip';
 import MessageList from './MessageList';
 import MessageForm from './MessageForm';
-import { messages } from '../messages';
-import { styled } from 'styled-components';
+import socketIoClient from 'socket.io-client';
 import { useState, useEffect, useRef } from 'react';
+import { styled } from 'styled-components';
 
 const StyledContainer = styled.div`
   position: fixed;
@@ -34,9 +34,11 @@ const MessageContent = styled.div`
   padding: 8px;
 `;
 
-const Chatbox = ({}) => {
-  const [message, setMessage] = useState(messages);
+const Chatbox = () => {
+  const [message, setMessage] = useState([]);
   const [isWindowOpen, setIsWindowOpen] = useState(false);
+  const [socket, setSocket] = useState(null);
+
   const lastMessageRef = useRef(null);
 
   const scrollToLastMessage = () => {
@@ -47,11 +49,14 @@ const Chatbox = ({}) => {
   };
 
   const unreadText = message.filter((text) => text.status === 'unread');
-  scrollToLastMessage();
+
+  //Displays the recent message
 
   useEffect(() => {
     scrollToLastMessage();
   }, [message]);
+
+  //if the floating icon is clicked
 
   useEffect(() => {
     if (isWindowOpen) {
@@ -59,17 +64,37 @@ const Chatbox = ({}) => {
     }
   }, [isWindowOpen]);
 
+  //establishes a socket connection for the first time
+
+  useEffect(() => {
+    const newSocket = socketIoClient('http://127.0.0.1:8080');
+    setSocket(newSocket);
+
+    return () => {
+      newSocket.disconnect();
+    };
+  }, []);
+
+  useEffect(() => {
+    socket?.on('WELCOME', (newtext) => {
+      setMessage(message.concat(newtext));
+    });
+
+    socket?.on('USER_MESSAGE', (newtext) => {
+      setMessage(message.concat(newtext));
+    });
+  }, [message, socket]);
+
   const insertNewMessage = (text) => {
-    setMessage([
-      ...message,
-      {
-        id: message.length,
-        status: 'read',
-        sender: 'user',
-        text,
-        time: new Date(),
-      },
-    ]);
+    const newMessage = {
+      id: message.length,
+      status: 'read',
+      sender: 'user',
+      text,
+      time: new Date(),
+    };
+    setMessage(message.concat(newMessage));
+    socket?.emit('USER_MESSAGE', newMessage);
   };
   return (
     <StyledContainer>

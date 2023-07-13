@@ -3,6 +3,7 @@ import { styled } from 'styled-components';
 import { useColorContext } from '../color_context';
 
 const StyledButton = styled.button`
+  transition: all 200ms ease-in-out;
   text-align: center;
   position: absolute;
   right: 0;
