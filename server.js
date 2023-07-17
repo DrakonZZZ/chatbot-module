@@ -16,6 +16,7 @@ const io = new Server(server, {
 const randomResponse = (min, max) => {
   return Math.random() * (min - max) + min;
 };
+let responseTimeout;
 
 const chatLog = {};
 
@@ -24,25 +25,23 @@ io.on('connection', (socket) => {
   const idExists = socket.handshake.query.id;
   let clientId;
 
-  console.log(idExists);
   if (idExists) {
     clientId = idExists;
     const chatExists = chatLog[idExists];
 
     if (chatExists) {
-      console.log('existing client as joined');
       socket.emit('CHAT_EXISTS', chatExists);
     }
   } else {
     console.log('second');
     const newClientId = uuid();
-    clientId = newClientId;
-    socket.emit('ID_ASSIGNMENT', clientId);
+    socket.emit('ID_ASSIGNMENT', newClientId);
 
+    clientId = newClientId;
+    console.log(clientId);
     setTimeout(() => {
       const welcomeMessage = {
         name: 'john doe',
-        status: false,
         sender: 'nonuser',
         text: 'hi there',
         time: new Date(),
@@ -52,7 +51,14 @@ io.on('connection', (socket) => {
     }, randomResponse(1500, 5000));
   }
 
-  socket.on('USER_MESSAGE', (message) => {
+  socket.on('MARK_READ', () => {
+    chatLog[clientId] = (chatLog[clientId] || []).map((m) => ({
+      ...m,
+      isRead: false,
+    }));
+  });
+
+  socket.on('NEW_MESSAGE', (message) => {
     chatLog[clientId] = chatLog[clientId]
       ? chatLog[clientId].concat(message)
       : [message];
@@ -62,19 +68,23 @@ io.on('connection', (socket) => {
 
     setTimeout(() => {
       socket.emit('TYPING');
-    }, randomResponse(4000, 6000));
+    }, randomResponse(4000, 5000));
 
-    setTimeout(() => {
+    if (responseTimeout) {
+      clearTimeout(responseTimeout);
+    }
+
+    responseTimeout = setTimeout(() => {
       const nonuser = {
         name: 'john',
         sender: 'nonuser',
         text: 'Let me you hook you up with our online technician',
         time: new Date(),
       };
-      socket.emit('USER_MESSAGE', nonuser);
+      socket.emit('NEW_MESSAGE', nonuser);
       chatLog[clientId].push(nonuser);
-      console.log(chatLog);
-    }, randomResponse(6000, 7000));
+      responseTimeout = undefined;
+    }, randomResponse(5000, 6000));
   });
 
   socket.on('disconnect', () => {

@@ -49,7 +49,9 @@ const Chatbox = () => {
     });
   };
 
-  const unreadText = message.filter((text) => text.status === false);
+  const unreadText = message.filter(
+    (text) => text.status === false && text.sender == 'nonuser'
+  );
 
   //Scrolls to most recent message
 
@@ -61,7 +63,8 @@ const Chatbox = () => {
 
   useEffect(() => {
     if (isWindowOpen) {
-      setMessage(message.map((m) => ({ ...m, status: 'read' })));
+      setMessage(message.map((m) => ({ ...m, status: true })));
+      markAllRead();
     }
   }, [isWindowOpen]);
 
@@ -82,6 +85,10 @@ const Chatbox = () => {
     };
   }, []);
 
+  const markAllRead = () => {
+    socket?.emit('MARK_READ');
+  };
+
   useEffect(() => {
     socket?.on('ID_ASSIGNMENT', (newId) => {
       localStorage.setItem('chat-id', newId);
@@ -89,6 +96,11 @@ const Chatbox = () => {
 
     socket?.on('CHAT_EXISTS', (message) => {
       setMessage(message);
+      const agentName = message.find((m) => m.name);
+      setIsTyping({
+        ...isTyping,
+        name: agentName.name ? agentName.name : 'Agent',
+      });
     });
     socket?.on('WELCOME', (newtext) => {
       setMessage(message.concat(newtext));
@@ -98,9 +110,8 @@ const Chatbox = () => {
     socket?.on('MESSAGE_READ', () => {
       setMessage(
         message.map((m) => {
-          console.log('working');
           if (m.status) {
-            return { ...m, status: false };
+            return { ...m, isRead: true };
           }
           return m;
         })
@@ -111,11 +122,20 @@ const Chatbox = () => {
       setIsTyping({ ...isTyping, value: true });
     });
 
-    socket?.on('USER_MESSAGE', (newtext) => {
-      setMessage(message.concat(newtext));
-      setIsTyping({ ...isTyping, value: false });
+    socket?.on('NEW_MESSAGE', (newtext) => {
+      setMessage(
+        message.concat({
+          ...newtext,
+          status: isWindowOpen,
+        })
+      );
+      setIsTyping({
+        ...isTyping,
+        value: false,
+      });
+      markAllRead();
     });
-  }, [message, socket]);
+  }, [message, socket, isWindowOpen]);
 
   const insertNewMessage = (text) => {
     const newMessage = {
@@ -125,7 +145,7 @@ const Chatbox = () => {
       time: new Date(),
     };
     setMessage(message.concat(newMessage));
-    socket?.emit('USER_MESSAGE', newMessage);
+    socket?.emit('NEW_MESSAGE', newMessage);
   };
   return (
     <StyledContainer>

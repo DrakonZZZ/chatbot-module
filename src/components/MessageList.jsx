@@ -63,7 +63,7 @@ const MessageList = ({ message, typing }) => {
               >
                 {m.text}
               </UserMessage>
-              {m.status ? null : <div className="read">Seen</div>}
+              {m.isRead ? <div className="read">Seen</div> : null}
             </UserMassageWrap>
           );
         }
@@ -79,7 +79,7 @@ const MessageList = ({ message, typing }) => {
         );
       })}
       {typing.value && (
-        <div className="type-style">{typing.name} typing...</div>
+        <div className="type-style">{typing.name} is typing...</div>
       )}
     </StyledContainer>
   );
