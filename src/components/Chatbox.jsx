@@ -36,6 +36,7 @@ const MessageContent = styled.div`
 
 const Chatbox = () => {
   const [message, setMessage] = useState([]);
+  const [isTyping, setIsTyping] = useState({ value: false, name: '' });
   const [isWindowOpen, setIsWindowOpen] = useState(false);
   const [socket, setSocket] = useState(null);
 
@@ -48,13 +49,13 @@ const Chatbox = () => {
     });
   };
 
-  const unreadText = message.filter((text) => text.status === 'unread');
+  const unreadText = message.filter((text) => text.status === false);
 
-  //Displays the recent message
+  //Scrolls to most recent message
 
   useEffect(() => {
     scrollToLastMessage();
-  }, [message]);
+  }, [message, isTyping]);
 
   //if the floating icon is clicked
 
@@ -67,7 +68,13 @@ const Chatbox = () => {
   //establishes a socket connection for the first time
 
   useEffect(() => {
-    const newSocket = socketIoClient('http://127.0.0.1:8080');
+    const chatId = localStorage.getItem('chat-id');
+    const newSocket = socketIoClient('http://127.0.0.1:8080', {
+      query: {
+        id: chatId,
+      },
+    });
+
     setSocket(newSocket);
 
     return () => {
@@ -76,19 +83,43 @@ const Chatbox = () => {
   }, []);
 
   useEffect(() => {
+    socket?.on('ID_ASSIGNMENT', (newId) => {
+      localStorage.setItem('chat-id', newId);
+    });
+
+    socket?.on('CHAT_EXISTS', (message) => {
+      setMessage(message);
+    });
     socket?.on('WELCOME', (newtext) => {
       setMessage(message.concat(newtext));
+      setIsTyping({ ...isTyping, name: newtext.name });
+    });
+
+    socket?.on('MESSAGE_READ', () => {
+      setMessage(
+        message.map((m) => {
+          console.log('working');
+          if (m.status) {
+            return { ...m, status: false };
+          }
+          return m;
+        })
+      );
+    });
+
+    socket?.on('TYPING', () => {
+      setIsTyping({ ...isTyping, value: true });
     });
 
     socket?.on('USER_MESSAGE', (newtext) => {
       setMessage(message.concat(newtext));
+      setIsTyping({ ...isTyping, value: false });
     });
   }, [message, socket]);
 
   const insertNewMessage = (text) => {
     const newMessage = {
-      id: message.length,
-      status: 'read',
+      status: true,
       sender: 'user',
       text,
       time: new Date(),
@@ -101,7 +132,7 @@ const Chatbox = () => {
       {isWindowOpen && (
         <FloatingWindow>
           <MessageContent>
-            <MessageList message={message} />
+            <MessageList message={message} typing={isTyping} />
             <div ref={lastMessageRef}></div>
           </MessageContent>
           <MessageForm onSumbit={insertNewMessage} />

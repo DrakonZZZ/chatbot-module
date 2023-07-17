@@ -6,6 +6,11 @@ const StyledContainer = styled.div`
   text-align: left;
   display: flex;
   flex-direction: column;
+  .type-style {
+    transition: all 200ms ease-in-out;
+    color: #7f7f7fbc;
+    margin-left: 8px;
+  }
 `;
 
 const MessageBaseWrap = styled.div`
@@ -16,6 +21,12 @@ const MessageBaseWrap = styled.div`
 
 const UserMassageWrap = styled(MessageBaseWrap)`
   align-items: flex-end;
+  .read {
+    color: #7f7f7fbc;
+    font-size: 0.7rem;
+    margin-right: 8px;
+    margin-top: 5px;
+  }
 `;
 
 const NonUserMassageWrap = styled(MessageBaseWrap)`
@@ -38,7 +49,7 @@ const NonUserMessage = styled(MessageBase)`
   color: ${(props) => props.$textSecondary};
 `;
 
-const MessageList = ({ message }) => {
+const MessageList = ({ message, typing }) => {
   const { theme } = useColorContext();
   return (
     <StyledContainer>
@@ -52,6 +63,7 @@ const MessageList = ({ message }) => {
               >
                 {m.text}
               </UserMessage>
+              {m.status ? null : <div className="read">Seen</div>}
             </UserMassageWrap>
           );
         }
@@ -66,6 +78,9 @@ const MessageList = ({ message }) => {
           </NonUserMassageWrap>
         );
       })}
+      {typing.value && (
+        <div className="type-style">{typing.name} typing...</div>
+      )}
     </StyledContainer>
   );
 };
