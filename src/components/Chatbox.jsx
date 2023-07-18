@@ -71,7 +71,7 @@ const Chatbox = () => {
   //establishes a socket connection for the first time
 
   useEffect(() => {
-    const chatId = localStorage.getItem('chat-id');
+    const chatId = sessionStorage.getItem('chat-id');
     const newSocket = socketIoClient('http://127.0.0.1:8080', {
       query: {
         id: chatId,
@@ -91,7 +91,7 @@ const Chatbox = () => {
 
   useEffect(() => {
     socket?.on('ID_ASSIGNMENT', (newId) => {
-      localStorage.setItem('chat-id', newId);
+      sessionStorage.setItem('chat-id', newId);
     });
 
     socket?.on('CHAT_EXISTS', (message) => {
